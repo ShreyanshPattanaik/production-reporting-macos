@@ -8,7 +8,7 @@ The application version is defined once in `Directory.Build.props`. Use semantic
 2. Merge through a pull request after the macOS workflow passes.
 3. Keep `main` releasable and do not commit `artifacts/`, `.tools/`, or generated DMGs.
 4. Create an immutable tag matching the application version, such as `v1.0.0-beta.1`.
-5. GitHub Actions produces separate Apple Silicon and Intel DMGs and attaches them to the release.
+5. GitHub Actions produces an Apple Silicon DMG and attaches it to the release.
 
 ## Apple distribution credentials
 

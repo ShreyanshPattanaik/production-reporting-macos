@@ -15,8 +15,6 @@ jobs:
         include:
           - os: macos-26
             arch: arm64
-          - os: macos-26
-            arch: x64
     runs-on: ${{ matrix.os }}
     environment: release
     env:

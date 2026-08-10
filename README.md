@@ -6,8 +6,8 @@ The existing Windows project is independent and is not modified by this reposito
 
 ## Compatibility
 
-- Primary package: Apple Silicon (`osx-arm64`) for current Macs.
-- Secondary package: Intel (`osx-x64`) for supported Intel Macs running macOS 26.
+- Release package: Apple Silicon (`osx-arm64`) for current Macs.
+- The packaging script retains an `osx-x64` option for local Intel builds, but automated releases target current Apple Silicon hardware.
 - Minimum operating system declared by the app: macOS 26.0.
 - Runtime: self-contained .NET 10 LTS; users do not install .NET separately.
 
