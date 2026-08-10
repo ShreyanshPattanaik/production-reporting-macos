@@ -1,0 +1,129 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ProductionReporting.Desktop.MainWindow"
+        Title="Production Reporting"
+        Icon="/Assets/AppLogo.png"
+        Width="1360" Height="820" MinWidth="1120" MinHeight="720"
+        WindowStartupLocation="CenterScreen"
+        Background="#F3F6F9"
+        FontFamily="Inter">
+  <Window.Styles>
+    <Style Selector="Button">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Padding" Value="16,9"/>
+      <Setter Property="Background" Value="#24B47E"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="CornerRadius" Value="5"/>
+    </Style>
+    <Style Selector="Button.secondary">
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="Foreground" Value="#172033"/>
+      <Setter Property="BorderBrush" Value="#D0D5DD"/>
+      <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="Button.danger"><Setter Property="Background" Value="#D92D20"/></Style>
+    <Style Selector="Button.nav">
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#D6DEEA"/>
+      <Setter Property="Padding" Value="20,14"/>
+      <Setter Property="Margin" Value="10,2"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="Button.nav:pointerover"><Setter Property="Background" Value="#213451"/><Setter Property="Foreground" Value="White"/></Style>
+    <Style Selector="Button.nav.selected"><Setter Property="Background" Value="#24B47E"/><Setter Property="Foreground" Value="#152238"/></Style>
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="White"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding" Value="20"/>
+      <Setter Property="BorderBrush" Value="#EAECF0"/>
+      <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="Border.pastel-blue"><Setter Property="Background" Value="#EAF2FF"/><Setter Property="BorderBrush" Value="#C9DCFF"/></Style>
+    <Style Selector="Border.pastel-green"><Setter Property="Background" Value="#EAF8F1"/><Setter Property="BorderBrush" Value="#C8EBD9"/></Style>
+    <Style Selector="Border.pastel-amber"><Setter Property="Background" Value="#FFF7E6"/><Setter Property="BorderBrush" Value="#F2D79B"/></Style>
+    <Style Selector="Border.pastel-lilac"><Setter Property="Background" Value="#F3EEFF"/><Setter Property="BorderBrush" Value="#DCCEFF"/></Style>
+    <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="#667085"/></Style>
+    <Style Selector="TextBlock.kpi-label"><Setter Property="Foreground" Value="#667085"/><Setter Property="FontSize" Value="11"/><Setter Property="FontWeight" Value="Bold"/></Style>
+    <Style Selector="TextBox"><Setter Property="Padding" Value="10,8"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#D0D5DD"/></Style>
+    <Style Selector="ComboBox"><Setter Property="Padding" Value="9,7"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#D0D5DD"/></Style>
+    <Style Selector="DataGrid"><Setter Property="Background" Value="White"/><Setter Property="BorderThickness" Value="0"/><Setter Property="GridLinesVisibility" Value="Horizontal"/><Setter Property="HorizontalGridLinesBrush" Value="#EAECF0"/><Setter Property="RowHeight" Value="42"/><Setter Property="ColumnHeaderHeight" Value="42"/><Setter Property="IsReadOnly" Value="True"/></Style>
+  </Window.Styles>
+
+  <Grid ColumnDefinitions="230,*">
+    <Border Grid.Column="0" Background="#152238">
+      <Grid RowDefinitions="105,*,90">
+        <Grid Margin="18,20,14,12" ColumnDefinitions="58,*">
+          <Border Width="50" Height="50" Background="White" CornerRadius="7" VerticalAlignment="Center"><Image Source="/Assets/AppLogo.png" Width="46" Height="46" Stretch="Uniform"/></Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="PRODUCTION" Foreground="White" FontSize="18" FontWeight="Bold"/><TextBlock Text="Reporting &amp; Control" Foreground="#94A3B8" FontSize="11"/></StackPanel>
+        </Grid>
+        <StackPanel Grid.Row="1">
+          <Button x:Name="DashboardNavButton" Classes="nav selected" Content="▦   Dashboard" Click="Dashboard_Click"/>
+          <Button x:Name="EntryNavButton" Classes="nav" Content="＋   Production Entry" Click="Entry_Click"/>
+          <Button x:Name="RecordsNavButton" Classes="nav" Content="☷   Records" Click="Records_Click"/>
+          <Button x:Name="ReportsNavButton" Classes="nav" Content="▤   Reports &amp; Export" Click="Reports_Click"/>
+          <Button x:Name="SettingsNavButton" Classes="nav" Content="⚙   Settings" Click="Settings_Click"/>
+        </StackPanel>
+        <Border Grid.Row="2" BorderBrush="#34445E" BorderThickness="0,1,0,0" Padding="20,14">
+          <StackPanel><TextBlock x:Name="SidePlantName" Text="Production Site" Foreground="White" FontWeight="SemiBold"/><TextBlock Text="Offline • Local storage" Foreground="#94A3B8" FontSize="11" Margin="0,4,0,0"/></StackPanel>
+        </Border>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Column="1" RowDefinitions="72,*">
+      <Border Background="White" BorderBrush="#E4E7EC" BorderThickness="0,0,0,1">
+        <Grid Margin="28,0" ColumnDefinitions="*,Auto">
+          <TextBlock x:Name="PageTitle" Text="Dashboard" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#172033"/>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10"><TextBlock Text="Reporting month" Classes="muted" VerticalAlignment="Center"/><DatePicker x:Name="MonthPicker" Width="160" SelectedDateChanged="MonthPicker_Changed"/></StackPanel>
+        </Grid>
+      </Border>
+
+      <Grid Grid.Row="1">
+        <ScrollViewer x:Name="DashboardPage" VerticalScrollBarVisibility="Auto"><StackPanel Margin="28" Spacing="18">
+          <UniformGrid Columns="4">
+            <Border Classes="card pastel-blue" Margin="0,0,12,0"><StackPanel><TextBlock Text="AVERAGE HOURLY INPUT" Classes="kpi-label"/><TextBlock x:Name="DashInput" Text="0.000 MT/h" FontSize="28" FontWeight="SemiBold" Margin="0,10,0,4"/><TextBlock Text="Average of hourly input" Classes="muted" FontSize="11"/></StackPanel></Border>
+            <Border Classes="card pastel-green" Margin="0,0,12,0"><StackPanel><TextBlock Text="AVERAGE HOURLY PRODUCTION" Classes="kpi-label"/><TextBlock x:Name="DashProduction" Text="0.000 MT/h" FontSize="28" FontWeight="SemiBold" Margin="0,10,0,4"/><TextBlock Text="Average of hourly production" Classes="muted" FontSize="11"/></StackPanel></Border>
+            <Border Classes="card pastel-amber" Margin="0,0,12,0"><StackPanel><TextBlock Text="AVERAGE YIELD" Classes="kpi-label"/><TextBlock x:Name="DashRecovery" Text="0.0%" FontSize="28" FontWeight="SemiBold" Margin="0,10,0,4"/><TextBlock Text="Hourly production ÷ hourly input" Classes="muted" FontSize="11"/></StackPanel></Border>
+            <Border Classes="card pastel-lilac"><StackPanel><TextBlock Text="READINGS" Classes="kpi-label"/><TextBlock x:Name="DashReadings" Text="0" FontSize="28" FontWeight="SemiBold" Margin="0,10,0,4"/><TextBlock Text="Valid operating records" Classes="muted" FontSize="11"/></StackPanel></Border>
+          </UniformGrid>
+          <Grid ColumnDefinitions="2*,*">
+            <Border Classes="card" Margin="0,0,18,0"><StackPanel><TextBlock Text="Recent readings" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,14"/><DataGrid x:Name="RecentGrid" Height="335"><DataGrid.Columns><DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM'}" Width="100"/><DataGridTextColumn Header="Time slot" Binding="{Binding TimeSlot}" Width="130"/><DataGridTextColumn Header="Input MT" Binding="{Binding ActualInputMt, StringFormat='N3'}" Width="*"/><DataGridTextColumn Header="Production MT" Binding="{Binding ActualProductionMt, StringFormat='N3'}" Width="*"/><DataGridTextColumn Header="Recovery" Binding="{Binding RecoveryPercent, StringFormat='N1'}" Width="*"/></DataGrid.Columns></DataGrid></StackPanel></Border>
+            <Border Classes="card" Grid.Column="1"><StackPanel><TextBlock Text="Rate indicators" FontSize="17" FontWeight="SemiBold"/><TextBlock Text="Average hourly metrics and projection" Classes="muted" Margin="0,4,0,22"/><TextBlock Text="Average hourly input" Classes="muted"/><TextBlock x:Name="DashInputRate" Text="0.00 MT/h" FontSize="24" FontWeight="SemiBold" Margin="0,5,0,18"/><TextBlock Text="Average hourly production" Classes="muted"/><TextBlock x:Name="DashProductionRate" Text="0.00 MT/h" FontSize="24" FontWeight="SemiBold" Margin="0,5,0,18"/><TextBlock Text="Estimated monthly production" Classes="muted"/><TextBlock x:Name="DashEstimate" Text="0.000 MT" FontSize="24" FontWeight="SemiBold" Margin="0,5,0,0"/></StackPanel></Border>
+          </Grid>
+        </StackPanel></ScrollViewer>
+
+        <ScrollViewer x:Name="EntryPage" IsVisible="False"><Grid Margin="28" MaxWidth="900" HorizontalAlignment="Left">
+          <Border Classes="card"><StackPanel>
+            <TextBlock Text="Operating reading" FontSize="19" FontWeight="SemiBold"/><TextBlock Text="Enter one measured production sample. Hourly input, hourly production, and yield are calculated from the measurements." Classes="muted" Margin="0,5,0,22"/>
+            <UniformGrid Columns="2"><StackPanel Margin="0,0,12,16"><TextBlock Text="Date" Margin="0,0,0,6"/><DatePicker x:Name="EntryDate"/></StackPanel><StackPanel Margin="12,0,0,16"><TextBlock Text="Time slot" Margin="0,0,0,6"/><ComboBox x:Name="TimeSlotCombo"/></StackPanel></UniformGrid>
+            <TextBlock Text="Feed input" FontWeight="SemiBold" Margin="0,4,0,10"/>
+            <UniformGrid Columns="2"><StackPanel Margin="0,0,12,16"><TextBlock Text="Weight (kg)" Margin="0,0,0,6"/><TextBox x:Name="FeedKgBox"/></StackPanel><StackPanel Margin="12,0,0,16"><TextBlock Text="Measurement time (seconds)" Margin="0,0,0,6"/><TextBox x:Name="FeedSecondsBox"/></StackPanel></UniformGrid>
+            <TextBlock Text="Boom outputs" FontWeight="SemiBold" Margin="0,4,0,10"/>
+            <UniformGrid Columns="2"><StackPanel Margin="0,0,12,16"><TextBlock Text="Boom 1 weight (kg)" Margin="0,0,0,6"/><TextBox x:Name="Boom1KgBox"/></StackPanel><StackPanel Margin="12,0,0,16"><TextBlock Text="Boom 1 time (seconds)" Margin="0,0,0,6"/><TextBox x:Name="Boom1SecondsBox"/></StackPanel><StackPanel Margin="0,0,12,16"><TextBlock Text="Boom 2 weight (kg)" Margin="0,0,0,6"/><TextBox x:Name="Boom2KgBox"/></StackPanel><StackPanel Margin="12,0,0,16"><TextBlock Text="Boom 2 time (seconds)" Margin="0,0,0,6"/><TextBox x:Name="Boom2SecondsBox"/></StackPanel></UniformGrid>
+            <TextBlock Text="Notes (optional)" Margin="0,0,0,6"/><TextBox x:Name="NotesBox" Height="64" TextWrapping="Wrap" AcceptsReturn="True"/>
+            <TextBlock x:Name="ValidationText" Foreground="#D92D20" Margin="0,12,0,0" TextWrapping="Wrap"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0" Spacing="10"><Button Classes="secondary" Content="Clear" Click="ClearEntry_Click"/><Button x:Name="SaveEntryButton" Content="Save reading" Click="SaveEntry_Click"/></StackPanel>
+          </StackPanel></Border>
+        </Grid></ScrollViewer>
+
+        <Grid x:Name="RecordsPage" IsVisible="False" Margin="28" RowDefinitions="Auto,*">
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,14" Spacing="10"><Button Classes="secondary" Content="Edit selected" Click="EditSelected_Click"/><Button Classes="danger" Content="Delete selected" Click="DeleteSelected_Click"/></StackPanel>
+          <Border Classes="card" Grid.Row="1"><DataGrid x:Name="RecordsGrid"><DataGrid.Columns><DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="120"/><DataGridTextColumn Header="Time" Binding="{Binding TimeSlot}" Width="115"/><DataGridTextColumn Header="Feed kg" Binding="{Binding FeedKg, StringFormat='N2'}" Width="85"/><DataGridTextColumn Header="Input MT" Binding="{Binding ActualInputMt, StringFormat='N3'}" Width="90"/><DataGridTextColumn Header="Production MT" Binding="{Binding ActualProductionMt, StringFormat='N3'}" Width="110"/><DataGridTextColumn Header="Input MT/h" Binding="{Binding HourlyInputMtPerHour, StringFormat='N2'}" Width="100"/><DataGridTextColumn Header="Production MT/h" Binding="{Binding HourlyProductionMtPerHour, StringFormat='N2'}" Width="125"/><DataGridTextColumn Header="Recovery %" Binding="{Binding RecoveryPercent, StringFormat='N1'}" Width="100"/><DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*"/></DataGrid.Columns></DataGrid></Border>
+        </Grid>
+
+        <Grid x:Name="ReportsPage" IsVisible="False" Margin="28" RowDefinitions="Auto,Auto,*">
+          <StackPanel Orientation="Horizontal" Spacing="10"><Button Content="Export detailed CSV" Click="ExportCsv_Click"/><Button Content="Export monthly CSV" Click="ExportMonthlyCsv_Click"/><Button Content="Export monthly PDF" Click="ExportPdf_Click"/><TextBlock x:Name="ReportStatus" VerticalAlignment="Center" Margin="6,0,0,0" Classes="muted"/></StackPanel>
+          <UniformGrid Grid.Row="1" Columns="4" Margin="0,18"><Border Classes="card pastel-blue" Margin="0,0,12,0"><StackPanel><TextBlock Text="AVERAGE HOURLY INPUT" Classes="muted"/><TextBlock x:Name="ReportInput" FontSize="25" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel></Border><Border Classes="card pastel-green" Margin="0,0,12,0"><StackPanel><TextBlock Text="AVERAGE HOURLY PRODUCTION" Classes="muted"/><TextBlock x:Name="ReportProduction" FontSize="25" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel></Border><Border Classes="card pastel-amber" Margin="0,0,12,0"><StackPanel><TextBlock Text="AVERAGE YIELD" Classes="muted"/><TextBlock x:Name="ReportRecovery" FontSize="25" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel></Border><Border Classes="card pastel-lilac"><StackPanel><TextBlock Text="ESTIMATED MONTHLY PRODUCTION" Classes="muted"/><TextBlock x:Name="ReportEstimate" FontSize="25" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel></Border></UniformGrid>
+          <Border Classes="card" Grid.Row="2"><StackPanel><TextBlock Text="Daily summary" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,14"/><DataGrid x:Name="DailyGrid"><DataGrid.Columns><DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="*"/><DataGridTextColumn Header="Readings" Binding="{Binding Readings}" Width="*"/><DataGridTextColumn Header="Avg hourly input MT" Binding="{Binding AverageHourlyInputMt, StringFormat='N3'}" Width="*"/><DataGridTextColumn Header="Avg hourly production MT" Binding="{Binding AverageHourlyProductionMt, StringFormat='N3'}" Width="*"/><DataGridTextColumn Header="Average yield" Binding="{Binding AverageYield, StringFormat='P2'}" Width="*"/><DataGridTextColumn Header="Estimated monthly production MT" Binding="{Binding EstimatedMonthlyProductionMt, StringFormat='N3'}" Width="*"/></DataGrid.Columns></DataGrid></StackPanel></Border>
+        </Grid>
+
+        <ScrollViewer x:Name="SettingsPage" IsVisible="False"><StackPanel Margin="28" Width="760" HorizontalAlignment="Left" Spacing="18">
+          <Border Classes="card"><StackPanel><TextBlock Text="Site settings" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Site name" Margin="0,18,0,6"/><TextBox x:Name="PlantNameBox"/><TextBlock Text="Monthly capacity (MT, optional)" Margin="0,14,0,6"/><TextBox x:Name="CapacityBox"/><Button Content="Save settings" HorizontalAlignment="Right" Margin="0,18,0,0" Click="SaveSettings_Click"/></StackPanel></Border>
+          <Border Classes="card"><StackPanel><TextBlock Text="Local data" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="All records are kept on this computer. Create a backup before moving or reinstalling the app." Classes="muted" Margin="0,6,0,16" TextWrapping="Wrap"/><StackPanel Orientation="Horizontal" Spacing="10"><Button Content="Back up data" Click="Backup_Click"/><Button Classes="secondary" Content="Restore backup" Click="Restore_Click"/></StackPanel><TextBlock x:Name="StoragePathText" Classes="muted" FontSize="11" Margin="0,14,0,0" TextWrapping="Wrap"/></StackPanel></Border>
+        </StackPanel></ScrollViewer>
+      </Grid>
+    </Grid>
+  </Grid>
+</Window>

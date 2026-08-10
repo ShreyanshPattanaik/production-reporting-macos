@@ -1,0 +1,11 @@
+bin/
+obj/
+publish/
+artifacts/
+.tools/
+TestResults/
+packaging/output/
+*.dmg
+*.pkg
+*.user
+*.suo

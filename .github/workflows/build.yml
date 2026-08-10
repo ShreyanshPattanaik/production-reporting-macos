@@ -1,0 +1,33 @@
+name: Build and test macOS app
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: macos-26
+    env:
+      AVALONIA_TELEMETRY_OPTOUT: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Test shared logic and backup compatibility
+        run: dotnet test tests/ProductionReporting.Core.Tests/ProductionReporting.Core.Tests.csproj --configuration Release
+      - name: Publish Apple Silicon app
+        run: >-
+          dotnet publish src/ProductionReporting.Desktop/ProductionReporting.Desktop.csproj
+          --configuration Release --runtime osx-arm64 --self-contained true
+          -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
+          --output artifacts/osx-arm64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ProductionReporting-macOS-arm64
+          path: artifacts/osx-arm64
+          if-no-files-found: error
