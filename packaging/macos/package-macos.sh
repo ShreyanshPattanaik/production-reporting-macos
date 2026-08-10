@@ -52,14 +52,24 @@ if [[ -n "${APPLE_SIGNING_IDENTITY:-}" ]]; then
     codesign --force --options runtime --timestamp --entitlements "$SCRIPT_DIR/ProductionReporting.entitlements" --sign "$APPLE_SIGNING_IDENTITY" "$binary"
   done < <(find "$MACOS_DIR" -type f \( -perm -111 -o -name '*.dylib' \))
   codesign --force --options runtime --timestamp --entitlements "$SCRIPT_DIR/ProductionReporting.entitlements" --sign "$APPLE_SIGNING_IDENTITY" "$BUNDLE_ROOT"
-  codesign --verify --deep --strict --verbose=2 "$BUNDLE_ROOT"
+else
+  # Keep the bundle structurally valid on Apple Silicon when Developer ID
+  # credentials are unavailable. Gatekeeper still requires a user override
+  # until the app is Developer ID-signed and notarized.
+  codesign --force --deep --sign - "$BUNDLE_ROOT"
 fi
+codesign --verify --deep --strict --verbose=2 "$BUNDLE_ROOT"
 
 rm -f "$DMG_PATH"
 mkdir -p "$DMG_STAGE"
 mv "$BUNDLE_ROOT" "$DMG_STAGE/"
 ln -s /Applications "$DMG_STAGE/Applications"
 hdiutil create -volname "Production Reporting" -srcfolder "$DMG_STAGE" -ov -format UDZO "$DMG_PATH"
+
+if [[ -n "${APPLE_SIGNING_IDENTITY:-}" ]]; then
+  codesign --force --timestamp --sign "$APPLE_SIGNING_IDENTITY" "$DMG_PATH"
+  codesign --verify --verbose=2 "$DMG_PATH"
+fi
 
 if [[ -n "${APPLE_ID:-}" && -n "${APPLE_TEAM_ID:-}" && -n "${APPLE_APP_SPECIFIC_PASSWORD:-}" ]]; then
   xcrun notarytool submit "$DMG_PATH" --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" \

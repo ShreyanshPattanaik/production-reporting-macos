@@ -21,7 +21,7 @@ Create a protected GitHub environment named `release` and configure:
 - `APPLE_TEAM_ID`: Apple Developer Team ID.
 - `APPLE_APP_SPECIFIC_PASSWORD`: app-specific password used by `notarytool`.
 
-Without these credentials the workflow can generate an unsigned DMG for internal testing. Public downloads should be signed, hardened, notarized, and stapled.
+Without these credentials the workflow applies an ad-hoc integrity signature for internal testing. Gatekeeper still requires a user override. Public downloads should be Developer ID-signed, hardened, notarized, and stapled.
 
 ## Backup compatibility
 
