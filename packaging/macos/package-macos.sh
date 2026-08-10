@@ -32,6 +32,7 @@ dotnet publish "$REPO_ROOT/src/ProductionReporting.Desktop/ProductionReporting.D
   -o "$PUBLISH_DIR"
 cp -R "$PUBLISH_DIR/"* "$MACOS_DIR/"
 chmod +x "$MACOS_DIR/ProductionReporting"
+rm -rf "$PUBLISH_DIR"
 
 sed -e "s/__MARKETING_VERSION__/$MARKETING_VERSION/g" -e "s/__BUILD_VERSION__/$BUILD_VERSION/g" \
   "$SCRIPT_DIR/Info.plist.template" > "$CONTENTS/Info.plist"
@@ -56,7 +57,7 @@ fi
 
 rm -f "$DMG_PATH"
 mkdir -p "$DMG_STAGE"
-cp -R "$BUNDLE_ROOT" "$DMG_STAGE/"
+mv "$BUNDLE_ROOT" "$DMG_STAGE/"
 ln -s /Applications "$DMG_STAGE/Applications"
 hdiutil create -volname "Production Reporting" -srcfolder "$DMG_STAGE" -ov -format UDZO "$DMG_PATH"
 
