@@ -11,6 +11,7 @@ public sealed class ProductionReading
     public double Boom1Seconds { get; set; }
     public double Boom2Kg { get; set; }
     public double Boom2Seconds { get; set; }
+    public double RunningMinutes { get; set; }
     public string Notes { get; set; } = "";
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
@@ -50,6 +51,8 @@ public sealed class DailySummary
     public int Readings { get; set; }
     public double AverageHourlyInputMt { get; set; }
     public double AverageHourlyProductionMt { get; set; }
+    public double RunningMinutes { get; set; }
     public double AverageYield => AverageHourlyInputMt > 0 ? AverageHourlyProductionMt / AverageHourlyInputMt : 0;
-    public double EstimatedMonthlyProductionMt => AverageHourlyProductionMt * 27d * 22d;
+    public double? ProductionForDayMt => RunningMinutes > 0 ? RunningMinutes / 60d * AverageHourlyProductionMt : null;
+    public string ProductionForDayDisplay => ProductionForDayMt is { } production ? production.ToString("N3") : "Not Applicable";
 }

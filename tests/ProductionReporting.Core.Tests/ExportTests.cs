@@ -9,7 +9,7 @@ public sealed class ExportTests
     {
         Date = new DateTime(2026, 8, 8), TimeSlot = "19:00 - 20:00",
         FeedKg = 15.8, FeedSeconds = 5.27, Boom1Kg = 10.6, Boom1Seconds = 10.1,
-        Boom2Kg = 5, Boom2Seconds = 10.8
+        Boom2Kg = 5, Boom2Seconds = 10.8, RunningMinutes = 45
     };
 
     [Fact]
@@ -32,6 +32,7 @@ public sealed class ExportTests
             Assert.Contains("Daily Summary", monthlyText);
             Assert.Contains("\"2026-08-08\"", monthlyText);
             Assert.Contains("Average yield", monthlyText);
+            Assert.Contains("Production for the day MT", monthlyText);
         }
         finally
         {
@@ -50,6 +51,7 @@ public sealed class ExportTests
             var pdfText = Encoding.ASCII.GetString(File.ReadAllBytes(path));
             Assert.Contains("Daily Summary", pdfText);
             Assert.Contains("Avg input MT/h", pdfText);
+            Assert.Contains("Production for day MT", pdfText);
             Assert.DoesNotContain("Hourly input = Feed kg", pdfText);
         }
         finally

@@ -9,11 +9,11 @@ public static class ReportExporter
     public static void WriteCsv(string path, IEnumerable<ProductionReading> readings)
     {
         var csv = new StringBuilder();
-        csv.AppendLine("Date,Time Slot,Feed KG,Feed Seconds,Boom 1 KG,Boom 1 Seconds,Boom 2 KG,Boom 2 Seconds,Hourly Input MT,Hourly Production MT,Recovery %,Notes");
+        csv.AppendLine("Date,Time Slot,Feed KG,Feed Seconds,Boom 1 KG,Boom 1 Seconds,Boom 2 KG,Boom 2 Seconds,Running Minutes,Hourly Input MT,Hourly Production MT,Recovery %,Notes");
         foreach (var r in readings)
         {
             string N(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
-            csv.AppendLine(string.Join(',', Quote(r.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)), Quote(r.TimeSlot), N(r.FeedKg), N(r.FeedSeconds), N(r.Boom1Kg), N(r.Boom1Seconds), N(r.Boom2Kg), N(r.Boom2Seconds), N(r.HourlyInputMtPerHour), N(r.HourlyProductionMtPerHour), N(r.RecoveryPercent), Quote(r.Notes)));
+            csv.AppendLine(string.Join(',', Quote(r.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)), Quote(r.TimeSlot), N(r.FeedKg), N(r.FeedSeconds), N(r.Boom1Kg), N(r.Boom1Seconds), N(r.Boom2Kg), N(r.Boom2Seconds), N(r.RunningMinutes), N(r.HourlyInputMtPerHour), N(r.HourlyProductionMtPerHour), N(r.RecoveryPercent), Quote(r.Notes)));
         }
         File.WriteAllText(path, csv.ToString(), new UTF8Encoding(true));
     }
@@ -39,7 +39,7 @@ public static class ReportExporter
         csv.AppendLine($"Operating readings,{readings.Count.ToString(CultureInfo.InvariantCulture)}");
         csv.AppendLine();
         csv.AppendLine("Daily Summary");
-        csv.AppendLine("Date,Readings,Average hourly input MT/h,Average hourly production MT/h,Average yield,Estimated monthly production MT");
+        csv.AppendLine("Date,Readings,Average hourly input MT/h,Average hourly production MT/h,Average yield,Production for the day MT");
         foreach (var d in daily)
         {
             csv.AppendLine(string.Join(',',
@@ -47,7 +47,7 @@ public static class ReportExporter
                 d.Readings.ToString(CultureInfo.InvariantCulture),
                 N(d.AverageHourlyInputMt), N(d.AverageHourlyProductionMt),
                 Quote(Percent(d.AverageYield)),
-                N(d.EstimatedMonthlyProductionMt)));
+                d.ProductionForDayMt is { } dayProduction ? N(dayProduction) : Quote("Not Applicable")));
         }
         File.WriteAllText(path, csv.ToString(), new UTF8Encoding(true));
     }
@@ -153,7 +153,7 @@ public static class ReportExporter
                 content.AppendLine($"{TableLeft} {F(y)} m {F(TableLeft + tableWidth)} {F(y)} l S");
             }
 
-            var headers = new[] { "Date", "Readings", "Avg input MT/h", "Avg production MT/h", "Yield", "Est. monthly MT" };
+            var headers = new[] { "Date", "Readings", "Avg input MT/h", "Avg production MT/h", "Yield", "Production for day MT" };
             x = TableLeft;
             for (var index = 0; index < headers.Length; index++)
             {
@@ -168,7 +168,7 @@ public static class ReportExporter
                 {
                     row.Date.ToString("dd MMM yyyy"), row.Readings.ToString("N0"),
                     row.AverageHourlyInputMt.ToString("N3"), row.AverageHourlyProductionMt.ToString("N3"),
-                    row.AverageYield.ToString("P2"), row.EstimatedMonthlyProductionMt.ToString("N3")
+                    row.AverageYield.ToString("P2"), row.ProductionForDayDisplay
                 };
                 x = TableLeft;
                 var baseline = top - RowHeight * (rowIndex + 1) - 13;

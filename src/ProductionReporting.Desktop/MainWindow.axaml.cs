@@ -102,7 +102,8 @@ public partial class MainWindow : Window
             !TryNonNegative(Boom1KgBox.Text, "Boom 1 weight", out var boom1Kg) ||
             !TryPositive(Boom1SecondsBox.Text, "Boom 1 measurement time", out var boom1Seconds) ||
             !TryNonNegative(Boom2KgBox.Text, "Boom 2 weight", out var boom2Kg) ||
-            !TryPositive(Boom2SecondsBox.Text, "Boom 2 measurement time", out var boom2Seconds)) return;
+            !TryPositive(Boom2SecondsBox.Text, "Boom 2 measurement time", out var boom2Seconds) ||
+            !TryRunningMinutes(RunningMinutesBox.Text, out var runningMinutes)) return;
         if (boom1Kg + boom2Kg <= 0)
         {
             ValidationText.Text = "Enter output weight for at least one boom.";
@@ -118,6 +119,7 @@ public partial class MainWindow : Window
         reading.Boom1Seconds = boom1Seconds;
         reading.Boom2Kg = boom2Kg;
         reading.Boom2Seconds = boom2Seconds;
+        reading.RunningMinutes = runningMinutes;
         reading.Notes = NotesBox.Text?.Trim() ?? "";
         if (_editingId is null) _data.Readings.Add(reading);
         _store.Save(_data);
@@ -146,6 +148,21 @@ public partial class MainWindow : Window
         return true;
     }
 
+    private bool TryRunningMinutes(string? text, out double value)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            value = 0;
+            return true;
+        }
+        if (!TryNumber(text, out value) || value < 0 || value > 60)
+        {
+            ValidationText.Text = "Running minutes must be a number from 0 to 60.";
+            return false;
+        }
+        return true;
+    }
+
     private static bool TryNumber(string? text, out double value) =>
         double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out value) ||
         double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
@@ -163,6 +180,7 @@ public partial class MainWindow : Window
         Boom1SecondsBox.Clear();
         Boom2KgBox.Clear();
         Boom2SecondsBox.Clear();
+        RunningMinutesBox.Text = "0";
         NotesBox.Clear();
         ValidationText.Text = "";
         SaveEntryButton.Content = "Save reading";
@@ -184,6 +202,7 @@ public partial class MainWindow : Window
         Boom1SecondsBox.Text = reading.Boom1Seconds.ToString(CultureInfo.CurrentCulture);
         Boom2KgBox.Text = reading.Boom2Kg.ToString(CultureInfo.CurrentCulture);
         Boom2SecondsBox.Text = reading.Boom2Seconds.ToString(CultureInfo.CurrentCulture);
+        RunningMinutesBox.Text = reading.RunningMinutes.ToString(CultureInfo.CurrentCulture);
         NotesBox.Text = reading.Notes;
         SaveEntryButton.Content = "Update reading";
         Navigate(1, "Edit Production Reading");

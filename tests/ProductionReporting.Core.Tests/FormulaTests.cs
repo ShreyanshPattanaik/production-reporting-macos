@@ -39,4 +39,33 @@ public sealed class FormulaTests
         Assert.Equal(3207.6, overview.EstimatedMonthlyProductionMt, 8);
         Assert.Equal(2, overview.ReadingCount);
     }
+
+    [Fact]
+    public void DailySummary_UsesSummedRunningMinutesAndDailyAverageProduction()
+    {
+        var date = new DateTime(2026, 8, 8);
+        var readings = new[]
+        {
+            new ProductionReading { Date = date, RunningMinutes = 60, Boom1Kg = 10, Boom1Seconds = 10 },
+            new ProductionReading { Date = date, RunningMinutes = 30, Boom1Kg = 20, Boom1Seconds = 10 }
+        };
+
+        var summary = Assert.Single(ReportCalculator.BuildDailySummaries(readings));
+
+        Assert.Equal(90, summary.RunningMinutes);
+        Assert.Equal(5.4, summary.AverageHourlyProductionMt, 8);
+        Assert.Equal(8.1, summary.ProductionForDayMt!.Value, 8);
+        Assert.Equal("8.100", summary.ProductionForDayDisplay);
+    }
+
+    [Fact]
+    public void DailySummary_WithNoRunningMinutes_IsNotApplicable()
+    {
+        var summary = Assert.Single(ReportCalculator.BuildDailySummaries([
+            new ProductionReading { Date = new DateTime(2026, 8, 8), Boom1Kg = 10, Boom1Seconds = 10 }
+        ]));
+
+        Assert.Null(summary.ProductionForDayMt);
+        Assert.Equal("Not Applicable", summary.ProductionForDayDisplay);
+    }
 }

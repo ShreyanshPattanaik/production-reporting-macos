@@ -16,6 +16,7 @@ public static class ReportCalculator
             Date = group.Key,
             Readings = group.Count(),
             AverageHourlyInputMt = group.Average(x => x.HourlyInputMtPerHour),
-            AverageHourlyProductionMt = group.Average(x => x.HourlyProductionMtPerHour)
+            AverageHourlyProductionMt = group.Average(x => x.HourlyProductionMtPerHour),
+            RunningMinutes = group.Sum(x => x.RunningMinutes)
         }).ToList();
 }

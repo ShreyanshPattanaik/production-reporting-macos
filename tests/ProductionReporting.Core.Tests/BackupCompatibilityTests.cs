@@ -38,6 +38,7 @@ public sealed class BackupCompatibilityTests
             Assert.Equal(AppData.CurrentSchemaVersion, imported.SchemaVersion);
             Assert.Equal("Portable Site", imported.Settings.PlantName);
             Assert.Single(imported.Readings);
+            Assert.Equal(0, imported.Readings[0].RunningMinutes);
 
             var portableBackup = Path.Combine(root, "portable-backup.json");
             windowsStore.CreateBackup(portableBackup, imported);
@@ -47,6 +48,7 @@ public sealed class BackupCompatibilityTests
             Assert.Equal(imported.Settings.PlantName, restoredOnMac.Settings.PlantName);
             Assert.Equal(imported.Readings[0].Id, restoredOnMac.Readings[0].Id);
             Assert.Equal(imported.Readings[0].HourlyProductionMtPerHour, restoredOnMac.Readings[0].HourlyProductionMtPerHour, 10);
+            Assert.Equal(imported.Readings[0].RunningMinutes, restoredOnMac.Readings[0].RunningMinutes);
         }
         finally
         {
