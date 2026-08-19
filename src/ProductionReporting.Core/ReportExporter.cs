@@ -59,9 +59,8 @@ public static class ReportExporter
         csv.AppendLine($"Average hourly production,{Quote($"{CsvNumber(production)} MT/h")}");
         csv.AppendLine($"Average yield,{Quote(CsvPercent(yield))}");
         csv.AppendLine($"Operating readings,{readings.Count.ToString(CultureInfo.InvariantCulture)}");
-        csv.AppendLine($"Total feed input,{Quote($"{CsvNumber(readings.Sum(x => x.FeedKg) / 1000d)} MT")}");
-        csv.AppendLine($"Total Boom 1,{Quote($"{CsvNumber(readings.Sum(x => x.Boom1Kg) / 1000d)} MT")}");
-        csv.AppendLine($"Total Boom 2,{Quote($"{CsvNumber(readings.Sum(x => x.Boom2Kg) / 1000d)} MT")}");
+        csv.AppendLine($"Total Actual Input MT,{Quote(CsvOptionalNumber(SumAvailable(readings, x => x.ActualInputMt), "MT"))}");
+        csv.AppendLine($"Total Actual Production MT,{Quote(CsvOptionalNumber(SumAvailable(readings, x => x.ActualProductionMt), "MT"))}");
         csv.AppendLine($"Hours run,{Quote($"{CsvNumber(readings.Sum(x => x.RunningMinutes) / 60d)} h")}");
         csv.AppendLine();
         csv.AppendLine(hourly ? "Hourly Summary" : "Daily Summary");
@@ -74,9 +73,9 @@ public static class ReportExporter
 
     private static void AppendHourlyCsv(StringBuilder csv, IEnumerable<ProductionReading> readings)
     {
-        csv.AppendLine("Date,Time Slot,Feed KG,Feed Seconds,Boom 1 KG,Boom 1 Seconds,Boom 2 KG,Boom 2 Seconds,Running Minutes,Hourly Input MT,Hourly Production MT,Recovery %,Notes");
+        csv.AppendLine("Date,Time Slot,Feed KG,Feed Seconds,Boom 1 KG,Boom 1 Seconds,Boom 2 KG,Boom 2 Seconds,Running Minutes,Hourly Input MT,Hourly Production MT,Actual Input MT,Actual Production MT,Recovery %,Notes");
         foreach (var r in readings)
-            csv.AppendLine(string.Join(',', Quote(r.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)), Quote(r.TimeSlot), CsvNumber(r.FeedKg), CsvNumber(r.FeedSeconds), CsvNumber(r.Boom1Kg), CsvNumber(r.Boom1Seconds), CsvNumber(r.Boom2Kg), CsvNumber(r.Boom2Seconds), CsvNumber(r.RunningMinutes), CsvNumber(r.HourlyInputMtPerHour), CsvNumber(r.HourlyProductionMtPerHour), CsvNumber(r.RecoveryPercent), Quote(r.Notes)));
+            csv.AppendLine(string.Join(',', Quote(r.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)), Quote(r.TimeSlot), CsvNumber(r.FeedKg), CsvNumber(r.FeedSeconds), CsvNumber(r.Boom1Kg), CsvNumber(r.Boom1Seconds), CsvNumber(r.Boom2Kg), CsvNumber(r.Boom2Seconds), CsvNumber(r.RunningMinutes), CsvNumber(r.HourlyInputMtPerHour), CsvNumber(r.HourlyProductionMtPerHour), CsvOptionalNumber(r.ActualInputMt), CsvOptionalNumber(r.ActualProductionMt), CsvOptionalNumber(r.RecoveryPercent), Quote(r.Notes)));
     }
 
     private static void AppendDailyCsv(StringBuilder csv, IEnumerable<DailySummary> daily)
@@ -94,7 +93,16 @@ public static class ReportExporter
     }
 
     private static string CsvNumber(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
+    private static string CsvOptionalNumber(double? value, string? unit = null) => value is { } number
+        ? $"{CsvNumber(number)}{(unit is null ? "" : $" {unit}")}"
+        : "-";
     private static string CsvPercent(double value) => $"{(value * 100d).ToString("0.00", CultureInfo.InvariantCulture)}%";
+
+    private static double? SumAvailable(IReadOnlyList<ProductionReading> readings, Func<ProductionReading, double?> selector)
+    {
+        var values = readings.Select(selector).Where(value => value.HasValue).Select(value => value!.Value).ToList();
+        return values.Count > 0 ? values.Sum() : null;
+    }
 
     private static string Quote(string value) => $"\"{(value ?? "").Replace("\"", "\"\"")}\"";
 
@@ -171,7 +179,7 @@ public static class ReportExporter
 
         private static List<string> BuildCustomHourlyPages(string plantName, string reportTitle, double input, double production, double yield, IReadOnlyList<ProductionReading> readings)
         {
-            var pages = Paginate(readings, 17, 24);
+            var pages = Paginate(readings, 16, 24);
             var streams = new List<string>();
             for (var pageIndex = 0; pageIndex < pages.Count; pageIndex++)
             {
@@ -179,8 +187,8 @@ public static class ReportExporter
                 if (pageIndex == 0)
                 {
                     AddCustomHeader(content, plantName, reportTitle, input, production, yield, readings);
-                    AddText(content, "Hourly Summary", 36, 414, 13, true);
-                    AddHourlyTable(content, pages[pageIndex], 397);
+                    AddText(content, "Hourly Summary", 36, 386, 13, true);
+                    AddHourlyTable(content, pages[pageIndex], 369);
                 }
                 else
                 {
@@ -195,7 +203,7 @@ public static class ReportExporter
 
         private static List<string> BuildCustomDailyPages(string plantName, string reportTitle, double input, double production, double yield, IReadOnlyList<ProductionReading> readings, IReadOnlyList<DailySummary> daily)
         {
-            var pages = Paginate(daily, 17, 24);
+            var pages = Paginate(daily, 16, 24);
             var streams = new List<string>();
             for (var pageIndex = 0; pageIndex < pages.Count; pageIndex++)
             {
@@ -203,8 +211,8 @@ public static class ReportExporter
                 if (pageIndex == 0)
                 {
                     AddCustomHeader(content, plantName, reportTitle, input, production, yield, readings);
-                    AddText(content, "Daily Summary", 36, 414, 13, true);
-                    AddTable(content, pages[pageIndex], 397);
+                    AddText(content, "Daily Summary", 36, 386, 13, true);
+                    AddTable(content, pages[pageIndex], 369);
                 }
                 else
                 {
@@ -221,14 +229,49 @@ public static class ReportExporter
         {
             AddText(content, plantName, 36, 550, 18, true);
             AddText(content, reportTitle, 36, 525, 9, true);
-            AddText(content, $"Average hourly input: {Number(input)} MT/h", 36, 488, 10);
-            AddText(content, $"Average hourly production: {Number(production)} MT/h", 285, 488, 10);
-            AddText(content, $"Average yield: {Percent(yield)}", 575, 488, 10);
-            AddText(content, $"Total feed input: {Number(readings.Sum(x => x.FeedKg) / 1000d)} MT", 36, 466, 9);
-            AddText(content, $"Total Boom 1: {Number(readings.Sum(x => x.Boom1Kg) / 1000d)} MT", 235, 466, 9);
-            AddText(content, $"Total Boom 2: {Number(readings.Sum(x => x.Boom2Kg) / 1000d)} MT", 425, 466, 9);
-            AddText(content, $"Hours run: {Number(readings.Sum(x => x.RunningMinutes) / 60d)} h", 615, 466, 9);
-            AddText(content, $"Operating readings: {Count(readings.Count)}", 36, 444, 9);
+            AddCustomMetricsTable(content, 498, input, production, yield, readings);
+            AddText(content, $"Operating readings: {Count(readings.Count)}", 36, 405, 9);
+        }
+
+        private static void AddCustomMetricsTable(StringBuilder content, double top, double input, double production, double yield, IReadOnlyList<ProductionReading> readings)
+        {
+            double[] widths = [255, 285, 230];
+            var tableWidth = widths.Sum();
+            var tableHeight = RowHeight * 4;
+            content.AppendLine($"0.93 g {TableLeft} {F(top - RowHeight)} {F(tableWidth)} {F(RowHeight)} re f {TableLeft} {F(top - RowHeight * 3)} {F(tableWidth)} {F(RowHeight)} re f 0 g");
+            content.AppendLine($"0.75 w 0.72 G {TableLeft} {F(top - tableHeight)} {F(tableWidth)} {F(tableHeight)} re S");
+            var x = TableLeft;
+            foreach (var width in widths.Take(widths.Length - 1))
+            {
+                x += width;
+                content.AppendLine($"{F(x)} {F(top)} m {F(x)} {F(top - tableHeight)} l S");
+            }
+            for (var row = 1; row < 4; row++)
+            {
+                var y = top - RowHeight * row;
+                content.AppendLine($"{TableLeft} {F(y)} m {F(TableLeft + tableWidth)} {F(y)} l S");
+            }
+
+            var labels = new[]
+            {
+                new[] { "Average hourly input", "Average hourly production", "Average yield" },
+                new[] { "Total Actual Input MT", "Total Actual Production MT", "Hours run" }
+            };
+            var values = new[]
+            {
+                new[] { $"{Number(input)} MT/h", $"{Number(production)} MT/h", $"{(yield * 100d).ToString("N2", CultureInfo.InvariantCulture)} %" },
+                new[] { OptionalNumber(SumAvailable(readings, item => item.ActualInputMt), "MT"), OptionalNumber(SumAvailable(readings, item => item.ActualProductionMt), "MT"), $"{Number(readings.Sum(item => item.RunningMinutes) / 60d)} h" }
+            };
+            for (var group = 0; group < 2; group++)
+            {
+                x = TableLeft;
+                for (var column = 0; column < widths.Length; column++)
+                {
+                    AddText(content, labels[group][column], x + 5, top - RowHeight * (group * 2) - 13, 7.4, true);
+                    AddText(content, values[group][column], x + 5, top - RowHeight * (group * 2 + 1) - 13, 9);
+                    x += widths[column];
+                }
+            }
         }
 
         private static List<IReadOnlyList<T>> Paginate<T>(IReadOnlyList<T> rows, int firstPageCount, int laterPageCount)
@@ -273,9 +316,9 @@ public static class ReportExporter
 
         private static void AddHourlyTable(StringBuilder content, IReadOnlyList<ProductionReading> rows, double top)
         {
-            double[] widths = [58, 68, 43, 43, 42, 42, 42, 42, 42, 52, 58, 50, 90];
-            var headers = new[] { "Date", "Time slot", "Feed kg", "Feed sec", "Boom1 kg", "Boom1 sec", "Boom2 kg", "Boom2 sec", "Run min", "Input MT/h", "Prod MT/h", "Recovery %", "Notes" };
-            AddGrid(content, widths, headers, rows.Count, top, 5.8);
+            double[] widths = [52, 64, 38, 38, 38, 38, 38, 38, 38, 48, 55, 52, 58, 50, 90];
+            var headers = new[] { "Date", "Time slot", "Feed kg", "Feed sec", "Boom1 kg", "Boom1 sec", "Boom2 kg", "Boom2 sec", "Run min", "Input MT/h", "Prod MT/h", "Actual in MT", "Actual prod MT", "Recovery %", "Notes" };
+            AddGrid(content, widths, headers, rows.Count, top, 5.2);
             for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
             {
                 var row = rows[rowIndex];
@@ -285,13 +328,14 @@ public static class ReportExporter
                     Number(row.FeedKg), Number(row.FeedSeconds), Number(row.Boom1Kg), Number(row.Boom1Seconds),
                     Number(row.Boom2Kg), Number(row.Boom2Seconds), Number(row.RunningMinutes),
                     Number(row.HourlyInputMtPerHour), Number(row.HourlyProductionMtPerHour),
-                    Percent(row.RecoveryPercent / 100d), Clip(row.Notes, 18)
+                    OptionalNumber(row.ActualInputMt), OptionalNumber(row.ActualProductionMt),
+                    row.RecoveryPercent is { } recovery ? Percent(recovery / 100d) : "-", Clip(row.Notes, 16)
                 };
                 var x = TableLeft;
                 var baseline = top - RowHeight * (rowIndex + 1) - 13;
                 for (var columnIndex = 0; columnIndex < values.Length; columnIndex++)
                 {
-                    AddText(content, values[columnIndex], x + 3, baseline, 6.2);
+                    AddText(content, values[columnIndex], x + 3, baseline, 5.4);
                     x += widths[columnIndex];
                 }
             }
@@ -373,6 +417,9 @@ public static class ReportExporter
 
         private static string F(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
         private static string Number(double value) => value.ToString("N3", CultureInfo.InvariantCulture);
+        private static string OptionalNumber(double? value, string? unit = null) => value is { } number
+            ? $"{Number(number)}{(unit is null ? "" : $" {unit}")}"
+            : "-";
         private static string Percent(double value) => value.ToString("P2", CultureInfo.InvariantCulture);
         private static string Count(int value) => value.ToString("N0", CultureInfo.InvariantCulture);
         private static string ReportDate(DateTime value) => value.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);

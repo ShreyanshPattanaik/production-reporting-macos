@@ -15,13 +15,24 @@ public sealed class ProductionReading
     public string Notes { get; set; } = "";
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    public double ActualInputMt => FeedKg / 1000d;
-    public double ActualProductionMt => (Boom1Kg + Boom2Kg) / 1000d;
+    public double MeasuredInputMt => FeedKg / 1000d;
+    public double MeasuredProductionMt => (Boom1Kg + Boom2Kg) / 1000d;
+    public double? ActualInputMt => FeedKg > 0 && FeedSeconds > 0 && RunningMinutes is >= 0 and <= 60
+        ? FeedKg / FeedSeconds * 60d * RunningMinutes / 1000d
+        : null;
+    public double? ActualProductionMt => Boom1Seconds > 0 && Boom2Seconds > 0 && Boom1Kg + Boom2Kg > 0 && RunningMinutes is >= 0 and <= 60
+        ? (Boom1Kg / Boom1Seconds + Boom2Kg / Boom2Seconds) * 60d * RunningMinutes / 1000d
+        : null;
     public double HourlyInputMtPerHour => FeedSeconds > 0 ? FeedKg / FeedSeconds / 1000d * 3600d : 0;
     public double HourlyProductionMtPerHour =>
         (Boom1Seconds > 0 ? Boom1Kg / Boom1Seconds * 3600d / 1000d : 0) +
         (Boom2Seconds > 0 ? Boom2Kg / Boom2Seconds * 3600d / 1000d : 0);
-    public double RecoveryPercent => HourlyInputMtPerHour > 0 ? HourlyProductionMtPerHour / HourlyInputMtPerHour * 100d : 0;
+    public double? RecoveryPercent => ActualInputMt is > 0 && ActualProductionMt is { } production
+        ? production / ActualInputMt.Value * 100d
+        : null;
+    public string ActualInputMtDisplay => ActualInputMt?.ToString("N3") ?? "-";
+    public string ActualProductionMtDisplay => ActualProductionMt?.ToString("N3") ?? "-";
+    public string RecoveryPercentDisplay => RecoveryPercent is { } recovery ? $"{recovery:N2}%" : "-";
 }
 
 public sealed class AppSettings
