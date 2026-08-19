@@ -90,19 +90,19 @@ public static class ReportExporter
                 if (pageIndex == 0)
                 {
                     AddText(content, plantName, 36, 550, 18, true);
-                    AddText(content, $"Monthly Production Report - {month:MMMM yyyy}", 36, 525, 13, true);
-                    AddText(content, $"Average hourly input: {input:N3} MT/h", 36, 488, 10);
-                    AddText(content, $"Average hourly production: {production:N3} MT/h", 285, 488, 10);
-                    AddText(content, $"Average yield: {yield:P2}", 575, 488, 10);
-                    AddText(content, $"Estimated monthly production: {monthlyEstimate:N3} MT", 36, 466, 10);
-                    AddText(content, $"Operating readings: {readingCount}", 365, 466, 10);
+                    AddText(content, $"Monthly Production Report - {ReportMonth(month)}", 36, 525, 13, true);
+                    AddText(content, $"Average hourly input: {Number(input)} MT/h", 36, 488, 10);
+                    AddText(content, $"Average hourly production: {Number(production)} MT/h", 285, 488, 10);
+                    AddText(content, $"Average yield: {Percent(yield)}", 575, 488, 10);
+                    AddText(content, $"Estimated monthly production: {Number(monthlyEstimate)} MT", 36, 466, 10);
+                    AddText(content, $"Operating readings: {Count(readingCount)}", 365, 466, 10);
                     AddText(content, "Daily Summary", 36, 427, 13, true);
                     AddTable(content, pageRows[pageIndex], 410);
                 }
                 else
                 {
                     AddText(content, $"{plantName} - Daily Summary (continued)", 36, 550, 14, true);
-                    AddText(content, $"{month:MMMM yyyy}", 36, 529, 10);
+                    AddText(content, ReportMonth(month), 36, 529, 10);
                     AddTable(content, pageRows[pageIndex], 505);
                 }
                 streams.Add(content.ToString());
@@ -166,9 +166,9 @@ public static class ReportExporter
                 var row = rows[rowIndex];
                 var values = new[]
                 {
-                    row.Date.ToString("dd MMM yyyy"), row.Readings.ToString("N0"),
-                    row.AverageHourlyInputMt.ToString("N3"), row.AverageHourlyProductionMt.ToString("N3"),
-                    row.AverageYield.ToString("P2"), row.ProductionForDayDisplay
+                    ReportDate(row.Date), Count(row.Readings),
+                    Number(row.AverageHourlyInputMt), Number(row.AverageHourlyProductionMt),
+                    Percent(row.AverageYield), row.ProductionForDayMt is { } production ? Number(production) : "Not Applicable"
                 };
                 x = TableLeft;
                 var baseline = top - RowHeight * (rowIndex + 1) - 13;
@@ -184,6 +184,11 @@ public static class ReportExporter
             content.AppendLine($"BT /{(bold ? "F2" : "F1")} {F(size)} Tf {F(x)} {F(y)} Td ({Escape(text)}) Tj ET");
 
         private static string F(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
+        private static string Number(double value) => value.ToString("N3", CultureInfo.InvariantCulture);
+        private static string Percent(double value) => value.ToString("P2", CultureInfo.InvariantCulture);
+        private static string Count(int value) => value.ToString("N0", CultureInfo.InvariantCulture);
+        private static string ReportDate(DateTime value) => value.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+        private static string ReportMonth(DateTime value) => value.ToString("MMMM yyyy", CultureInfo.InvariantCulture);
         private static string Escape(string text) => string.Concat(text.Select(c => c < 128 ? c : '?')).Replace("\\", "\\\\").Replace("(", "\\(").Replace(")", "\\)");
     }
 }
