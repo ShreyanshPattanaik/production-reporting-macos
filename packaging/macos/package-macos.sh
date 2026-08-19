@@ -60,6 +60,20 @@ else
 fi
 codesign --verify --deep --strict --verbose=2 "$BUNDLE_ROOT"
 
+# GitHub's macOS runners can be tight on disk after the test and publish steps.
+# Once the signed app bundle exists, the intermediate build output and NuGet
+# cache are no longer needed and can be cleared before hdiutil copies the app.
+if [[ "${CI:-}" == "true" ]]; then
+  rm -rf \
+    "$REPO_ROOT/src/ProductionReporting.Core/bin" \
+    "$REPO_ROOT/src/ProductionReporting.Core/obj" \
+    "$REPO_ROOT/src/ProductionReporting.Desktop/bin" \
+    "$REPO_ROOT/src/ProductionReporting.Desktop/obj" \
+    "$REPO_ROOT/tests/ProductionReporting.Core.Tests/bin" \
+    "$REPO_ROOT/tests/ProductionReporting.Core.Tests/obj"
+  dotnet nuget locals all --clear >/dev/null
+fi
+
 rm -f "$DMG_PATH"
 mkdir -p "$DMG_STAGE"
 mv "$BUNDLE_ROOT" "$DMG_STAGE/"
