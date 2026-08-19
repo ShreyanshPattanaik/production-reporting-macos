@@ -110,4 +110,67 @@ public sealed class ExportTests
             File.Delete(path);
         }
     }
+
+    [Theory]
+    [InlineData(true, "Hourly Summary", "Date,Time Slot,Feed KG,Feed Seconds")]
+    [InlineData(false, "Daily Summary", "Date,Readings,Average hourly input MT/h")]
+    public void CustomCsvContainsRequestedSummaryAndTotalsWithoutMonthlyEstimate(bool hourly, string section, string tableHeader)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ProductionReporting-{Guid.NewGuid():N}.csv");
+        try
+        {
+            var readings = new[] { Reading };
+            var daily = ReportCalculator.BuildDailySummaries(readings);
+            var title = hourly
+                ? "Custom Production Report from 08 Aug 2026 19:00 - 20:00 to 08 Aug 2026 19:00 - 20:00"
+                : "Custom Production Report from 08 Aug 2026 to 08 Aug 2026";
+
+            ReportExporter.WriteCustomCsv(path, "Production Site", title, readings, daily, hourly);
+            var text = File.ReadAllText(path);
+
+            Assert.Contains(title, text);
+            Assert.Contains(section, text);
+            Assert.Contains(tableHeader, text);
+            Assert.Contains("Total feed input,\"0.016 MT\"", text);
+            Assert.Contains("Total Boom 1,\"0.011 MT\"", text);
+            Assert.Contains("Total Boom 2,\"0.005 MT\"", text);
+            Assert.Contains("Hours run,\"0.75 h\"", text);
+            Assert.DoesNotContain("Estimated monthly production", text, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Theory]
+    [InlineData(true, "Hourly Summary")]
+    [InlineData(false, "Daily Summary")]
+    public void CustomPdfContainsRequestedSummaryAndTotalsWithoutMonthlyEstimate(bool hourly, string section)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ProductionReporting-{Guid.NewGuid():N}.pdf");
+        try
+        {
+            var readings = new[] { Reading };
+            var daily = ReportCalculator.BuildDailySummaries(readings);
+            var title = hourly
+                ? "Custom Production Report from 08 Aug 2026 19:00 - 20:00 to 08 Aug 2026 19:00 - 20:00"
+                : "Custom Production Report from 08 Aug 2026 to 08 Aug 2026";
+
+            ReportExporter.WriteCustomPdf(path, "Production Site", title, readings, daily, hourly);
+            var text = Encoding.ASCII.GetString(File.ReadAllBytes(path));
+
+            Assert.Contains(title, text);
+            Assert.Contains(section, text);
+            Assert.Contains("Total feed input: 0.016 MT", text);
+            Assert.Contains("Total Boom 1: 0.011 MT", text);
+            Assert.Contains("Total Boom 2: 0.005 MT", text);
+            Assert.Contains("Hours run: 0.750 h", text);
+            Assert.DoesNotContain("Estimated monthly production", text, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
 }

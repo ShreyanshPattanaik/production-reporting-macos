@@ -14,7 +14,7 @@
       <Setter Property="Background" Value="#24B47E"/>
       <Setter Property="Foreground" Value="White"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
-      <Setter Property="CornerRadius" Value="5"/>
+      <Setter Property="CornerRadius" Value="8"/>
     </Style>
     <Style Selector="Button.secondary">
       <Setter Property="Background" Value="White"/>
@@ -50,6 +50,8 @@
     <Style Selector="TextBox"><Setter Property="Padding" Value="10,8"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#D0D5DD"/></Style>
     <Style Selector="ComboBox"><Setter Property="Padding" Value="9,7"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#D0D5DD"/></Style>
     <Style Selector="DataGrid"><Setter Property="Background" Value="White"/><Setter Property="BorderThickness" Value="0"/><Setter Property="GridLinesVisibility" Value="Horizontal"/><Setter Property="HorizontalGridLinesBrush" Value="#EAECF0"/><Setter Property="RowHeight" Value="42"/><Setter Property="ColumnHeaderHeight" Value="42"/><Setter Property="IsReadOnly" Value="True"/></Style>
+    <Style Selector="DataGrid#DailyGrid DataGridCell TextBlock"><Setter Property="HorizontalAlignment" Value="Center"/><Setter Property="TextAlignment" Value="Center"/></Style>
+    <Style Selector="DataGrid#DailyGrid DataGridColumnHeader"><Setter Property="HorizontalContentAlignment" Value="Center"/></Style>
   </Window.Styles>
 
   <Grid ColumnDefinitions="230,*">
@@ -76,7 +78,7 @@
       <Border Background="White" BorderBrush="#E4E7EC" BorderThickness="0,0,0,1">
         <Grid Margin="28,0" ColumnDefinitions="*,Auto">
           <TextBlock x:Name="PageTitle" Text="Dashboard" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#172033"/>
-          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10"><TextBlock Text="Reporting month" Classes="muted" VerticalAlignment="Center"/><DatePicker x:Name="MonthPicker" Width="160" SelectedDateChanged="MonthPicker_Changed"/></StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10"><TextBlock Text="Reporting month" Classes="muted" VerticalAlignment="Center"/><ComboBox x:Name="MonthPicker" Width="130" DisplayMemberBinding="{Binding Display}" SelectionChanged="MonthPicker_Changed"/></StackPanel>
         </Grid>
       </Border>
 
@@ -114,9 +116,57 @@
         </Grid>
 
         <Grid x:Name="ReportsPage" IsVisible="False" Margin="28" RowDefinitions="Auto,Auto,*">
-          <StackPanel Orientation="Horizontal" Spacing="10"><Button Content="Export detailed CSV" Click="ExportCsv_Click"/><Button Content="Export monthly CSV" Click="ExportMonthlyCsv_Click"/><Button Content="Export monthly PDF" Click="ExportPdf_Click"/><TextBlock x:Name="ReportStatus" VerticalAlignment="Center" Margin="6,0,0,0" Classes="muted"/></StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Content="Export ▼" CornerRadius="8" Click="OpenContextMenu_Click">
+              <Button.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="Export detailed CSV" Click="ExportCsv_Click"/>
+                  <MenuItem Header="Export monthly CSV" Click="ExportMonthlyCsv_Click"/>
+                  <MenuItem Header="Export monthly PDF" Click="ExportPdf_Click"/>
+                  <Separator/>
+                  <MenuItem Header="Export custom PDF" Click="ExportCustomPdf_Click"/>
+                  <MenuItem Header="Export custom CSV" Click="ExportCustomCsv_Click"/>
+                </ContextMenu>
+              </Button.ContextMenu>
+            </Button>
+            <TextBlock x:Name="ReportStatus" VerticalAlignment="Center" Margin="6,0,0,0" Classes="muted"/>
+          </StackPanel>
           <UniformGrid Grid.Row="1" Columns="4" Margin="0,18"><Border Classes="card pastel-blue" Margin="0,0,12,0"><StackPanel><TextBlock Text="AVERAGE HOURLY INPUT" Classes="muted"/><TextBlock x:Name="ReportInput" FontSize="25" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel></Border><Border Classes="card pastel-green" Margin="0,0,12,0"><StackPanel><TextBlock Text="AVERAGE HOURLY PRODUCTION" Classes="muted"/><TextBlock x:Name="ReportProduction" FontSize="25" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel></Border><Border Classes="card pastel-amber" Margin="0,0,12,0"><StackPanel><TextBlock Text="AVERAGE YIELD" Classes="muted"/><TextBlock x:Name="ReportRecovery" FontSize="25" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel></Border><Border Classes="card pastel-lilac"><StackPanel><TextBlock Text="ESTIMATED MONTHLY PRODUCTION" Classes="muted"/><TextBlock x:Name="ReportEstimate" FontSize="25" FontWeight="SemiBold" Margin="0,8,0,0"/></StackPanel></Border></UniformGrid>
-          <Border Classes="card" Grid.Row="2"><StackPanel><TextBlock Text="Daily summary" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,14"/><DataGrid x:Name="DailyGrid"><DataGrid.Columns><DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="*"/><DataGridTextColumn Header="Readings" Binding="{Binding Readings}" Width="*"/><DataGridTextColumn Header="Avg hourly input MT" Binding="{Binding AverageHourlyInputMt, StringFormat='N3'}" Width="*"/><DataGridTextColumn Header="Avg hourly production MT" Binding="{Binding AverageHourlyProductionMt, StringFormat='N3'}" Width="*"/><DataGridTextColumn Header="Average yield" Binding="{Binding AverageYield, StringFormat='P2'}" Width="*"/><DataGridTextColumn Header="Production for the day MT" Binding="{Binding ProductionForDayDisplay}" Width="*"/></DataGrid.Columns></DataGrid></StackPanel></Border>
+          <Border Classes="card" Grid.Row="2">
+            <Grid RowDefinitions="Auto,*" ColumnDefinitions="Auto,*,Auto">
+              <Button x:Name="SummaryBackButton" Grid.Column="0" CornerRadius="8" Content="← Back" IsVisible="False" Click="SummaryBack_Click"/>
+              <TextBlock x:Name="SummaryTitle" Grid.Column="1" Text="Daily Summary" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Button x:Name="ViewCustomSummaryButton" Grid.Column="2" CornerRadius="8" Content="View Custom Summary" Click="ViewCustomSummary_Click"/>
+              <Button x:Name="ExportCustomSummaryButton" Grid.Column="2" CornerRadius="8" Content="Export Custom Summary ▼" IsVisible="False" Click="OpenContextMenu_Click">
+                <Button.ContextMenu>
+                  <ContextMenu>
+                    <MenuItem Header="Export PDF" Click="ExportActiveCustomPdf_Click"/>
+                    <MenuItem Header="Export CSV" Click="ExportActiveCustomCsv_Click"/>
+                  </ContextMenu>
+                </Button.ContextMenu>
+              </Button>
+              <DataGrid x:Name="DailyGrid" Grid.Row="1" Grid.ColumnSpan="3" Margin="0,14,0,0" SelectionChanged="DailyGrid_SelectionChanged">
+                <DataGrid.Columns><DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="*"/><DataGridTextColumn Header="Readings" Binding="{Binding Readings}" Width="*"/><DataGridTextColumn Header="Avg hourly input MT" Binding="{Binding AverageHourlyInputMt, StringFormat='N3'}" Width="*"/><DataGridTextColumn Header="Avg hourly production MT" Binding="{Binding AverageHourlyProductionMt, StringFormat='N3'}" Width="*"/><DataGridTextColumn Header="Average yield" Binding="{Binding AverageYield, StringFormat='P2'}" Width="*"/><DataGridTextColumn Header="Production for the day MT" Binding="{Binding ProductionForDayDisplay}" Width="*"/></DataGrid.Columns>
+              </DataGrid>
+              <DataGrid x:Name="HourlySummaryGrid" Grid.Row="1" Grid.ColumnSpan="3" Margin="0,14,0,0" IsVisible="False">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='dd MMM yyyy'}" Width="105"/>
+                  <DataGridTextColumn Header="Time slot" Binding="{Binding TimeSlot}" Width="115"/>
+                  <DataGridTextColumn Header="Feed kg" Binding="{Binding FeedKg, StringFormat='N2'}" Width="70"/>
+                  <DataGridTextColumn Header="Feed sec" Binding="{Binding FeedSeconds, StringFormat='N2'}" Width="70"/>
+                  <DataGridTextColumn Header="Boom 1 kg" Binding="{Binding Boom1Kg, StringFormat='N2'}" Width="75"/>
+                  <DataGridTextColumn Header="Boom 1 sec" Binding="{Binding Boom1Seconds, StringFormat='N2'}" Width="75"/>
+                  <DataGridTextColumn Header="Boom 2 kg" Binding="{Binding Boom2Kg, StringFormat='N2'}" Width="75"/>
+                  <DataGridTextColumn Header="Boom 2 sec" Binding="{Binding Boom2Seconds, StringFormat='N2'}" Width="75"/>
+                  <DataGridTextColumn Header="Running min" Binding="{Binding RunningMinutes, StringFormat='N2'}" Width="85"/>
+                  <DataGridTextColumn Header="Input MT/h" Binding="{Binding HourlyInputMtPerHour, StringFormat='N3'}" Width="90"/>
+                  <DataGridTextColumn Header="Production MT/h" Binding="{Binding HourlyProductionMtPerHour, StringFormat='N3'}" Width="110"/>
+                  <DataGridTextColumn Header="Recovery %" Binding="{Binding RecoveryPercent, StringFormat='N2'}" Width="90"/>
+                  <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*"/>
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+          </Border>
         </Grid>
 
         <ScrollViewer x:Name="SettingsPage" IsVisible="False"><StackPanel Margin="28" Width="760" HorizontalAlignment="Left" Spacing="18">
