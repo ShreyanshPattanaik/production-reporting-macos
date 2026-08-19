@@ -131,9 +131,8 @@ public sealed class ExportTests
             Assert.Contains(title, text);
             Assert.Contains(section, text);
             Assert.Contains(tableHeader, text);
-            Assert.Contains("Total feed input,\"0.016 MT\"", text);
-            Assert.Contains("Total Boom 1,\"0.011 MT\"", text);
-            Assert.Contains("Total Boom 2,\"0.005 MT\"", text);
+            Assert.Contains("Total Actual Input MT,\"8.095 MT\"", text);
+            Assert.Contains("Total Actual Production MT,\"4.084 MT\"", text);
             Assert.Contains("Hours run,\"0.75 h\"", text);
             Assert.DoesNotContain("Estimated monthly production", text, StringComparison.OrdinalIgnoreCase);
         }
@@ -162,11 +161,46 @@ public sealed class ExportTests
 
             Assert.Contains(title, text);
             Assert.Contains(section, text);
-            Assert.Contains("Total feed input: 0.016 MT", text);
-            Assert.Contains("Total Boom 1: 0.011 MT", text);
-            Assert.Contains("Total Boom 2: 0.005 MT", text);
-            Assert.Contains("Hours run: 0.750 h", text);
+            Assert.Contains("Average hourly input", text);
+            Assert.Contains("10.793 MT/h", text);
+            Assert.Contains("Average hourly production", text);
+            Assert.Contains("5.445 MT/h", text);
+            Assert.Contains("Average yield", text);
+            Assert.Contains("50.45 %", text);
+            Assert.Contains("Total Actual Input MT", text);
+            Assert.Contains("8.095 MT", text);
+            Assert.Contains("Total Actual Production MT", text);
+            Assert.Contains("4.084 MT", text);
+            Assert.Contains("Hours run", text);
+            Assert.Contains("0.750 h", text);
             Assert.DoesNotContain("Estimated monthly production", text, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void DetailedCsvUsesDashesForMissingActualValuesAndRecovery()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ProductionReporting-{Guid.NewGuid():N}.csv");
+        try
+        {
+            var reading = new ProductionReading
+            {
+                Date = new DateTime(2026, 8, 8),
+                TimeSlot = "19:00 - 20:00",
+                FeedKg = 15,
+                Boom1Kg = 5,
+                Boom2Kg = 5
+            };
+
+            ReportExporter.WriteCsv(path, [reading]);
+            var text = File.ReadAllText(path);
+
+            Assert.Contains("Hourly Production MT,Actual Input MT,Actual Production MT,Recovery %", text);
+            Assert.Contains(",-,-,-,", text);
         }
         finally
         {

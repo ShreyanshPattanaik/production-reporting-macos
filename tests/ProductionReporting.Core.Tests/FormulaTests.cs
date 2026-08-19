@@ -14,12 +14,28 @@ public sealed class FormulaTests
             Boom1Kg = 10.6,
             Boom1Seconds = 10.1,
             Boom2Kg = 5,
-            Boom2Seconds = 10.8
+            Boom2Seconds = 10.8,
+            RunningMinutes = 45
         };
 
         Assert.Equal(10.7931688805, reading.HourlyInputMtPerHour, 8);
         Assert.Equal(5.4448844884, reading.HourlyProductionMtPerHour, 8);
-        Assert.Equal(50.447505721, reading.RecoveryPercent, 8);
+        Assert.Equal(8.0948766603, reading.ActualInputMt!.Value, 8);
+        Assert.Equal(4.0836633663, reading.ActualProductionMt!.Value, 8);
+        Assert.Equal(50.4475057210, reading.RecoveryPercent!.Value, 8);
+    }
+
+    [Fact]
+    public void Reading_WithMissingMeasurementTimes_ShowsUnavailableActualValues()
+    {
+        var reading = new ProductionReading { FeedKg = 15, Boom1Kg = 5, Boom2Kg = 5, RunningMinutes = 30 };
+
+        Assert.Null(reading.ActualInputMt);
+        Assert.Null(reading.ActualProductionMt);
+        Assert.Null(reading.RecoveryPercent);
+        Assert.Equal("-", reading.ActualInputMtDisplay);
+        Assert.Equal("-", reading.ActualProductionMtDisplay);
+        Assert.Equal("-", reading.RecoveryPercentDisplay);
     }
 
     [Fact]
